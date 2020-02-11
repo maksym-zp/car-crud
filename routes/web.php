@@ -17,5 +17,6 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/', 'CarController@index')->name('home');
     Route::resource('car', 'CarController');
     Route::resource('brand', 'BrandController');
+    Route::post('/upload-image', 'CarController@saveImage')->name('saveImage');
 });
 

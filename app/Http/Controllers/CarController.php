@@ -3,34 +3,54 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CarRequest;
-use App\Models\Brand;
+use App\Http\Requests\ImageRequest;
+use App\Repositories\CarRepository;
+use App\Services\ImageService;
+use App\Traits\ImageTrait;
 
 class CarController extends Controller
 {
 
+    use ImageTrait;
+
+    public $car;
+    public $imageService;
+
+    /**
+     * UserRepository constructor.
+     * @param CarRepository $car
+     */
+    function __construct(CarRepository $car)
+    {
+        $this->car = $car;
+        $this->imageService = new ImageService();
+    }
+
+    /**
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
     public function index()
     {
-        $auth = auth()->user();
-        $car = $auth->car ? $auth->car->toJson() : collect([]);
-        $brands = Brand::all()->toJson();
-        $models = ($auth->car &&$auth->car->brand)  ? $auth->car->brand->carModels : collect([]);
-        return view('home', compact('auth', 'car', 'brands', 'models'));
+        return $this->car->index();
     }
 
+    /**
+     * @param CarRequest $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     function update(CarRequest $request)
     {
-        try {
-            if (auth()->user()->car) {
-                $car = auth()->user()->car()->update($request->all());
-                return response()->json(['updated' => $car]);
-            } else {
-                $car = auth()->user()->car()->create($request->all());
-                return response()->json(['updated' => $car]);
-            }
-        } catch (\Exception $exception) {
-            return response()->json(['exception' => $exception->getMessage()]);
-        }
+        return $this->car->update($request->all());
     }
 
+    /**
+     * @param ImageRequest $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function saveImage(ImageRequest $request)
+    {
+        return $this->imageService->save($request);
+
+    }
 
 }

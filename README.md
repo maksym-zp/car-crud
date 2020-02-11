@@ -14,6 +14,7 @@ update the .env file database connection
 $ composer install && composer update
 $ php artisan key:generate 
 $ php artisan migrate --seed
+$ php artisan storage:link
 $ npm install
 
 ```

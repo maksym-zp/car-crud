@@ -10,7 +10,16 @@
                     </div>
                     <div class="card-body">
                         @if($auth)
-                            <car-form :user="{{ (string) $auth->id }}" :car="{{ $car }}" :brands="{{ $brands }}" :models="{{ $models }}"></car-form>
+                            <car-form
+                                    :user="{{ (string) $auth->id }}"
+                                    :car="{{ $car }}"
+                                    :brands="{{ $brands }}"
+                                    :models="{{ $models }}"
+                                    :colors="{{ $colors }}"
+                                    :can-has-drive-train="{{ $canHasDriveTrain }}"
+                                    :drive-train-variables="{{ $driveTrainVariables }}"
+                                    :car-image="{{ $image }}"
+                            ></car-form>
                         @endif
                     </div>
                 </div>
