@@ -21,6 +21,9 @@ class CarRepository
         $this->car = $car;
     }
 
+    /**
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
     public function index()
     {
         $auth = auth()->user();
@@ -39,19 +42,40 @@ class CarRepository
             ]);
     }
 
-    public function update( $data)
+    /**
+     * @param $data
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function update($data)
     {
         try {
-            if (auth()->user()->car) {
-                $car = auth()->user()->car()->update($data);
-                return response()->json(['updated' => $car]);
-            } else {
-                $car = auth()->user()->car()->create($data);
-                return response()->json(['updated' => $car]);
-            }
+            if ($this->canSaveDrivetrain($data)) {
+                if (auth()->user()->car) {
+                    if(array_key_exists('drivetrain', $data) && $data['drivetrain'] == 0)
+                        $data['drivetrain'] = null;
+
+                    $car = auth()->user()->car()->update($data);
+                    return response()->json(['updated' => $car]);
+                } else {
+                    $car = auth()->user()->car()->create($data);
+                    return response()->json(['updated' => $car]);
+                }
+            };
+            return response()->json(['exception' => 'There are no such options for this model.']);
         } catch (\Exception $exception) {
             return response()->json(['exception' => $exception->getMessage()]);
         }
     }
 
+    /**
+     * @param $data
+     * @return bool
+     */
+    private function canSaveDrivetrain($data)
+    {
+        return (!array_key_exists('drivetrain', $data) || $data['drivetrain'] === 0
+            ||
+            (array_key_exists('model_id', $data) && $data['model_id'] === CarModel::GRANDCHEROKEE)
+        ) ? true : false;
+    }
 }

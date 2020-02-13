@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\MilageRule;
+use App\Rules\DrivetrainRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CarRequest extends FormRequest
@@ -24,7 +26,9 @@ class CarRequest extends FormRequest
     public function rules()
     {
         return [
-            'name'=> 'required|string'
+            'name'=> 'required|string',
+            'milage' => [new MilageRule()],
+            'drivetrain' => ['sometimes', new DrivetrainRule()],
         ];
     }
 }
