@@ -1,57 +1,40 @@
 <template>
     <form>
-    <tabs :onSelect="onSelect">
-        <tab title="Page 1">
-
-                <div class="form-group">
-                    <label for="name">Case: </label>
-                    <input type="text"
-                           class="form-control"
-                           name="name"
-                           id="name"
-                           v-model="carData.name"
-                           @blur="handleInputFocusOut($event)"
-                    />
-                    <small id="emailHelp" class="form-text text-muted">Case is required for saving other fields.</small>
-                </div>
-
-                <div class="form-group">
-                    <label for="brand">Make: </label>
-                    <select v-model="carData.brand_id"
-                            @change="onChange($event)"
-                            name="brand"
-                            class="form-control">
-                        <option disabled value="" id="brand">Select brand</option>
-                        <option v-for="brand in brands" v-bind:value="brand.id" :key="brand.id">{{brand.name}}</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="carModel">Model: </label>
-                    <select v-model="carData.model_id"
-                            @change="onChange($event)"
-                            name="model"
-                            class="form-control">
-                        <option disabled value="" id="carModel">Select model</option>
-                        <option v-for="model in modelsData" v-bind:value="model.id" :key="model.id">{{model.name}}</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="milage">Milage: </label>
-                    <input type="number"
-                           min="0"
-                           class="form-control"
-                           name="milage"
-                           id="milage"
-                           v-model="carData.milage"
-                           @blur="handleInputFocusOut"
-                    />
-                </div>
+        <tabs>
+            <tab title="Page 1">
+                <InputTag
+                        @change-input="handleChangeInput"
+                        :dataValue="carData.name"
+                        inputName="name"
+                        inputType="text"
+                        textLabel="Case: "
+                        smallTextInfo="Case is required for saving other fields."
+                />
+                <SelectTag
+                        @change-select="handleChangeSelect"
+                        :dataArray="this.brands"
+                        :selected="carData.brand_id"
+                        selectType="brand"
+                        textLabel="Make: "
+                />
+                <SelectTag
+                        @change-select="handleChangeSelect"
+                        :dataArray="this.modelsData"
+                        :selected="carData.model_id"
+                        selectType="model"
+                        textLabel="Model: "
+                />
+                <InputTag
+                        @change-input="handleChangeInput"
+                        :dataValue="carData.milage"
+                        inputName="milage"
+                        inputType="number"
+                        textLabel="Milage: "
+                />
                 <div class="form-group">
                     <label for="buying">Buying Date: </label>
                     <datepicker
-                            input-class="form-group"
+                            input-class="form-control"
                             wrapper-class="form-group"
                             name="buying"
                             id="buying"
@@ -59,102 +42,124 @@
                             :format="customFormatter"
                             @selected="selectedBuying"
                     ></datepicker>
-
                 </div>
-
-
-
-        </tab>
-        <tab title="Page 2">
-            <div class="form-group">
-                <label for="color">Color: </label>
-                <select v-model="carData.color_id"
-                        @change="onChange($event)"
-                        name="color"
-                        class="form-control">
-                    <option disabled value="" id="color">Select color</option>
-                    <option v-for="color in colors" v-bind:value="color.id" :key="color.id">{{color.name}}</option>
-                </select>
-            </div>
-            <div v-if="(this.carData.model_id === this.canHasDriveTrain)" class="form-group">
-                <label for="drivetrain">Drivetrain: </label>
-                <select v-model="carData.drivetrain"
-                        @change="onChange($event)"
-                        name="drivetrain"
-                        class="form-control">
-                    <option disabled value="" id="drivetrain">Select drivetrain</option>
-                    <option v-for="drivetrain in driveTrainVariables"  :key="drivetrain">{{drivetrain}}</option>
-                </select>
-            </div>
-            <ImageUploader :image="this.imageUrl" ></ImageUploader>
-        </tab>
-    </tabs>
+            </tab>
+            <tab title="Page 2">
+                <SelectTag
+                        @change-select="handleChangeSelect"
+                        :dataArray="this.colors"
+                        :selected="carData.color_id"
+                        selectType="color"
+                        textLabel="Color: "
+                />
+                <SelectTag
+                        v-if="(this.carData.model_id === this.canHasDriveTrain)"
+                        @change-select="handleChangeSelect"
+                        :dataArray="this.driveTrainVariables"
+                        :selected="carData.drivetrain"
+                        selectType="drivetrain"
+                        textLabel="Drivetrain: "
+                />
+                <ImageUploader :image-url="this.imageUrl" @change-image="handleChangeImage"></ImageUploader>
+            </tab>
+        </tabs>
         <button type="submit"
                 class="btn btn-primary"
                 :disabled="buttonDisabled"
                 v-on:click="getQuote($event)"
-        >Get quote</button>
+        >Get quote
+        </button>
     </form>
 </template>
 
 <script>
     import Datepicker from 'vuejs-datepicker';
     import moment from 'moment';
-    import { Tabs, Tab } from 'vue-slim-tabs'
+    import {Tabs, Tab} from 'vue-slim-tabs'
     import ImageUploader from './ImageUploader';
-    import EventBus from './../event-bus';
+    import SelectTag from './formGroupTags/SelectTag';
+    import InputTag from './formGroupTags/InputTag';
+
     export default {
         name: "CarComponent",
-        props: ['user', 'car', 'brands', 'models', 'colors', 'canHasDriveTrain', 'driveTrainVariables', 'carImage'],
+        props: {
+            user: {type: Number, required: true},
+            car: {type: [Object, Array], required: true},
+            brands: {type: Array, required: true},
+            models: {type: Array, required: true},
+            colors: {type: Array, required: true},
+            canHasDriveTrain: {type: Number, required: true},
+            driveTrainVariables: {type: Array, required: true},
+            urlImage: {type: String}
+        },
         data: function () {
             return {
                 carModel: [],
                 carData: {...this.car} || {},
-                imageUrl: {...this.carImage} || {},
+                imageUrl: this.urlImage || '',
                 modelsData: {...this.models} || {},
                 buttonDisabled: false
             }
         },
         components: {
-            Datepicker, Tabs, Tab, ImageUploader
+            Datepicker, Tabs, Tab, ImageUploader, SelectTag, InputTag
         },
         methods: {
-            handleInputFocusOut(event) {
-                if (event.target.name === 'milage' && event.target.value > 100000) {
-                    this.buttonDisabled = true;
-                    alert('We can insure your car');
-                }else if(event.target.name === 'milage' && event.target.value < 100000){
-                    this.buttonDisabled = false;
-                    this.updatedFormData();
-                } else {
-                    this.updatedFormData();
-                }
-
-            },
-            onChange(event) {
-                if (event.target.name === 'brand') {
+            handleChangeSelect(name, value) {
+                if (name === 'brand') {
+                    this.carData.brand_id = value;
                     this.carData.model_id = null;
-
-                    this.getModelsByBrand(event.target.value)
-                } else if(event.target.name === 'model') {
-
-                    if(parseInt(event.target.value) !== this.canHasDriveTrain){
-                        this.carData.drivetrain = null;
+                    this.getModelsByBrand(value)
+                } else if (name === 'model') {
+                    this.carData.model_id = value;
+                    if (parseInt(value) !== this.canHasDriveTrain && this.carData.drivetrain) {
+                        this.carData.drivetrain = 0;
                     }
 
+                } else if (name === 'color') {
+                    this.carData.color_id = value;
+                } else {
+                    this.carData[name] = value;
                 }
+
                 this.updatedFormData();
+            },
+            handleChangeInput(name, value) {
+                switch (name) {
+                    case 'milage':
+                        if (value > 100000) {
+                            this.buttonDisabled = true;
+                            alert('We can insure your car');
+                        } else {
+                            this.buttonDisabled = false;
+                            this.updatedFormData();
+                        }
+                        break;
+                    default:
+                        this.carData[name] = value;
+                        this.updatedFormData();
+                        break;
+                }
             },
             updatedFormData() {
                 let data = this.checkBuyingFormat();
                 if (data.name && data.name.length > 0) {
+
+                    Object.filter = (obj, predicate) =>
+                        Object.keys(obj)
+                            .filter(key => predicate(obj[key]))
+                            .reduce((res, key) => (res[key] = obj[key], res), {});
+
+
+                    var filtered = Object.filter(data, value => value !== null);
+
                     let uri = '/car/update';
-                    axios.put(uri, data).then((response) => {
-                        console.log('response', response);
+                    axios.put(uri, filtered).then((response) => {
+                        console.log('response', response.data);
                     }).catch((errors) => {
-                        console.log('errors', errors);
+                        this.getErrorMessages(errors);
                     });
-                }else{
+                } else {
                     alert('Write case text first !');
                 }
             },
@@ -165,23 +170,23 @@
                         this.modelsData = response.data;
                     }
                 }).catch((errors) => {
-                    console.log('errors', errors);
+                    this.getErrorMessages(errors);
                 });
             },
-            getDriveTrainVariables(){
+            getDriveTrainVariables() {
                 let uri = '/drive-train';
                 axios.get(uri).then((response) => {
                     if (response.data) {
                         this.driveTrainVariablesData = response.data;
                     }
                 }).catch((errors) => {
-                    console.log('errors', errors);
+                    this.getErrorMessages(errors);
                 });
             },
             customFormatter(date) {
                 return moment(date).format('YYYY-MM-DD');
             },
-            selectedBuying(date){
+            selectedBuying(date) {
                 this.carData.buying = moment(date).format('YYYY-MM-DD');
                 this.updatedFormData();
             },
@@ -192,26 +197,25 @@
                 }
                 return data;
             },
-            onSelect(e, index) {
-                let self = this;
-                    EventBus.$on('new-url', function (url) {
-
-                        if(url){
-                            self.imageUrl.url = url;
-                        }
-
-                    });
+            handleChangeImage(name, value){
+                this.imageUrl = value;
             },
-            getQuote(e){
+            getQuote(e) {
                 e.preventDefault();
                 alert('getQuote');
+            },
+            getErrorMessages(errors) {
+                let errorsArray = errors.response.data.errors;
+                let errorsText = Object.keys(errorsArray).map(function (key, index) {
+                    return key + ":" + errorsArray[key][0];
+                });
+                alert(errorsText);
             }
         }
-
     }
 </script>
-<style scoped>
-    .tablist {
+<style module>
+    .vue-tablist {
         list-style: none;
         display: flex;
         padding-left: 0;

@@ -18,38 +18,47 @@
 </template>
 
 <script>
-    import EventBus from './../event-bus';
     export default {
         name: "ImageUploader",
         data() {
             return {
-                url: this.image.url ? 'storage/'+this.image.url : null,
+                url: this.imageUrl ? 'storage/'+this.imageUrl : null,
                 file: null,
                 buttonDisabled: false,
             }
         },
-        props: ['image'],
+        props: ['imageUrl'],
         methods: {
             onFileChange(e) {
-
                 const file = e.target.files[0];
-                if (!file.name.match(/.(jpg|jpeg|ico|png|gif)$/i)) {
+                if (!this.beforeUpload(file)) {
                     this.url = null;
                     this.file = null;
                     this.buttonDisabled = true;
-                    alert('not an image');
                 } else {
                     this.file = file;
                     this.url = URL.createObjectURL(file);
                     this.buttonDisabled = false;
                 }
-
-
+            },
+            beforeUpload(file) {
+                let isImage = this.checkType(file);
+                let isLt2M = this.checkSize(file);
+                return isImage && isLt2M;
             },
             checkType(file) {
-
-                if (!file.name.match(/.(jpg|jpeg|ico|png|gif)$/i))
+                let isImage = file.name.match(/.(jpg|jpeg|ico|png|gif)$/i);
+                if (!isImage){
                     alert('not an image');
+                }
+                return isImage;
+            },
+            checkSize(file) {
+                let isLt2M = file.size / 1024 / 1024 < 2;
+                if (!isLt2M) {
+                    alert('Image must smaller than 2MB!');
+                }
+                return isLt2M;
             },
             save(e){
                 e.preventDefault();
@@ -70,7 +79,7 @@
                         if(response.data.url){
                             var newUrl = response.data.url;
                             this.url = 'storage/'+ newUrl;
-                            EventBus.$emit('new-url', newUrl);
+                            this.$emit('change-image', '/upload-image', newUrl);
                         }else if(response.data.error){
                             alert(response.data.error);
                         }
