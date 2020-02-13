@@ -18,7 +18,7 @@
                                     :colors="{{ $colors }}"
                                     :can-has-drive-train="{{ $canHasDriveTrain }}"
                                     :drive-train-variables="{{ $driveTrainVariables }}"
-                                    :url-image="'{{ !$image->isEmpty() ? $image->url : '' }}'"
+                                    :url-image="'{{ !empty($image) ? $image->url : '' }}'"
                             ></car-form>
                         @endif
                     </div>

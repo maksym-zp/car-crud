@@ -37,7 +37,7 @@ class CarRepository
                 'colors'                => Color::all()->toJson(),
                 'driveTrainVariables'   => json_encode(Car::DRIVETRAIN),
                 'canHasDriveTrain'      => CarModel::GRANDCHEROKEE,
-                'image'                 => ($car && $car->image) ? $car->image : collect([]),
+                'image'                 => ($car && $car->image) ? $car->image : '',
 
             ]);
     }
